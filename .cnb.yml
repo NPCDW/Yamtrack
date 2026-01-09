@@ -1,0 +1,39 @@
+$:
+  vscode:
+    - docker:
+        image: docker.cnb.cool/my-codespace/dev-image/python:latest
+      services:
+        - vscode
+        - docker
+      imports: https://cnb.cool/my-codespace/envs/-/blob/main/yamtrack.yml
+      # 开发环境启动后会执行的任务ls 
+      stages:
+        - name: install redis
+          script: docker run -d --name redis -p 6379:6379 --restart unless-stopped redis:8-alpine
+        - name: add env
+          script: /usr/bin/bash -c 'export URLS=${CNB_VSCODE_PROXY_URI/\{\{port\}\}/8000} && export URLS=${URLS/https/http} && echo -e "TMDB_API=$TMDB_API\nTMDB_LANG=${TMDB_LANG:-zh}\nMAL_API=$MAL_API\nIGDB_ID=$IGDB_ID\nIGDB_SECRET=$IGDB_SECRET\nSTEAM_API_KEY=$STEAM_API_KEY\nSECRET=SECRET\nDEBUG=True\nURLS=${URLS}" >> .env'
+        # - name: install tailwindcss
+        #   script: wget https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64 && chmod +x tailwindcss-linux-x64 && mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
+        # - name: install watchman
+        #   script: wget https://github.com/facebook/watchman/releases/download/v2025.12.29.00/watchman-v2025.12.29.00-linux.zip && unzip watchman-v2025.12.29.00-linux.zip && mv watchman-v2025.12.29.00-linux/bin/* /usr/local/bin/  && mv watchman-v2025.12.29.00-linux/lib/* /usr/local/lib/
+        - name: install dep
+          script: python -m pip install -U -r requirements-dev.txt && cd src && python manage.py migrate
+        - name: start proxy
+          script: nohup /root/.cnb/proxy/start.sh >/root/proxy.log 2>&1 &
+        # - name: start dev server
+        #   script: export URLS=${CNB_VSCODE_PROXY_URI/\{\{port\}\}/8000} && export URLS=${URLS/https/http} && export HTTP_PROXY=http://127.0.0.1:10808 && export HTTPS_PROXY=http://127.0.0.1:10808 && cd src && python manage.py runserver 0.0.0.0:8000
+        # - name: start dev server2
+        #   script: cd src && celery -A config worker --beat --scheduler django --loglevel DEBUG
+        # - name: start dev server3
+        #   script: cd src && tailwindcss -i ./static/css/input.css -o ./static/css/tailwind.css --watch
+
+  push:
+    - imports: https://cnb.cool/my-codespace/envs/-/blob/main/github-secret.yml
+      stages:
+        - name: sync to github
+          image: tencentcom/git-sync
+          settings:
+            target_url: https://github.com/NPCDW/Yamtrack.git
+            auth_type: https
+            username: ${GITHUB_USERNAME}
+            password: ${GITHUB_ACCESS_TOKEN}
