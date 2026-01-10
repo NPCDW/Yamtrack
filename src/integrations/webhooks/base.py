@@ -348,7 +348,7 @@ class BaseWebhookProcessor:
 
         if tv_created:
             logger.info("Created new TV instance: %s", tv_metadata["title"])
-        elif tv_instance.status != Status.IN_PROGRESS.value:
+        elif tv_instance.status == Status.PLANNING.value or tv_instance.status == Status.PAUSED.value:
             tv_instance.status = Status.IN_PROGRESS.value
             tv_instance.save()
             logger.info(
@@ -381,7 +381,7 @@ class BaseWebhookProcessor:
                 tv_metadata["title"],
                 season_number,
             )
-        elif season_instance.status != Status.IN_PROGRESS.value:
+        elif season_instance.status == Status.PLANNING.value or season_instance.status == Status.PAUSED.value:
             season_instance.status = Status.IN_PROGRESS.value
             season_instance.save()
             logger.info(
@@ -409,7 +409,7 @@ class BaseWebhookProcessor:
             # sometimes webhooks are triggered multiple times #689
             if latest_episode and latest_episode.end_date:
                 time_diff = abs((now - latest_episode.end_date).total_seconds())
-                threshold = 5
+                threshold = 1800
                 if time_diff < threshold:
                     should_create = False
                     logger.debug(
