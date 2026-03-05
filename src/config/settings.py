@@ -228,7 +228,7 @@ CACHES = {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URL,
         "TIMEOUT": CACHE_TIMEOUT,
-        "VERSION": 14,
+        "VERSION": 15,
         "KEY_PREFIX": KEY_PREFIX,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
@@ -257,13 +257,19 @@ LOGGING = {
     "disable_existing_loggers": False,
     "loggers": {
         "requests_ratelimiter.requests_ratelimiter": {
-            "level": "DEBUG" if DEBUG else "WARNING",
+            "level": "WARNING",
         },
         "psycopg": {
             "level": "DEBUG" if DEBUG else "WARNING",
         },
         "urllib3": {
-            "level": "DEBUG" if DEBUG else "WARNING",
+            "level": "WARNING",
+        },
+        "celery.utils.functional": {
+            "level": "WARNING",
+        },
+        "fakeredis": {
+            "level": "WARNING",
         },
     },
     "formatters": {
@@ -461,6 +467,7 @@ SIMKL_SECRET = config(
     ),
 )
 
+
 TESTING = False
 
 HEALTHCHECK_CELERY_PING_TIMEOUT = config(
@@ -492,7 +499,7 @@ SELECT2_THEME = "tailwindcss-4"
 
 # Celery settings
 
-CELERY_BROKER_URL = REDIS_URL
+CELERY_BROKER_URL = config("CELERY_REDIS_URL", default=REDIS_URL)
 CELERY_TIMEZONE = TIME_ZONE
 
 if REDIS_PREFIX:

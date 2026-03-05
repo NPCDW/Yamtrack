@@ -35,9 +35,7 @@ def get_redis_connection():
 
 
 redis_pool = get_redis_connection()
-
-REDIS_PREFIX = getattr(settings, "REDIS_PREFIX", None)
-bucket_name = f"{REDIS_PREFIX}_api" if REDIS_PREFIX else "api"
+bucket_name = f"{settings.REDIS_PREFIX}_api" if settings.REDIS_PREFIX else "api"
 
 session = LimiterSession(
     per_second=5,
@@ -219,9 +217,11 @@ def get_media_metadata(
 
     metadata_retrievers = {
         MediaTypes.ANIME.value: lambda: mal.anime(media_id),
-        MediaTypes.MANGA.value: lambda: mangaupdates.manga(media_id)
-        if source == Sources.MANGAUPDATES.value
-        else mal.manga(media_id),
+        MediaTypes.MANGA.value: lambda: (
+            mangaupdates.manga(media_id)
+            if source == Sources.MANGAUPDATES.value
+            else mal.manga(media_id)
+        ),
         MediaTypes.TV.value: lambda: tmdb.tv(media_id),
         "tv_with_seasons": lambda: tmdb.tv_with_seasons(media_id, season_numbers),
         MediaTypes.SEASON.value: lambda: tmdb.tv_with_seasons(media_id, season_numbers)[
@@ -234,9 +234,11 @@ def get_media_metadata(
         ),
         MediaTypes.MOVIE.value: lambda: tmdb.movie(media_id),
         MediaTypes.GAME.value: lambda: igdb.game(media_id),
-        MediaTypes.BOOK.value: lambda: hardcover.book(media_id)
-        if source == Sources.HARDCOVER.value
-        else openlibrary.book(media_id),
+        MediaTypes.BOOK.value: lambda: (
+            hardcover.book(media_id)
+            if source == Sources.HARDCOVER.value
+            else openlibrary.book(media_id)
+        ),
         MediaTypes.COMIC.value: lambda: comicvine.comic(media_id),
         MediaTypes.BOARDGAME.value: lambda: bgg.boardgame(media_id),
     }
@@ -245,25 +247,24 @@ def get_media_metadata(
 
 def search(media_type, query, page, source=None):
     """Search for media based on the query and return the results."""
-    if media_type == MediaTypes.MANGA.value:
-        if source == Sources.MANGAUPDATES.value:
-            response = mangaupdates.search(query, page)
-        else:
-            response = mal.search(media_type, query, page)
-    elif media_type == MediaTypes.ANIME.value:
-        response = mal.search(media_type, query, page)
-    elif media_type in (MediaTypes.TV.value, MediaTypes.MOVIE.value):
-        response = tmdb.search(media_type, query, page)
-    elif media_type == MediaTypes.GAME.value:
-        response = igdb.search(query, page)
-    elif media_type == MediaTypes.BOOK.value:
-        if source == Sources.OPENLIBRARY.value:
-            response = openlibrary.search(query, page)
-        else:
-            response = hardcover.search(query, page)
-    elif media_type == MediaTypes.COMIC.value:
-        response = comicvine.search(query, page)
-    elif media_type == MediaTypes.BOARDGAME.value:
-        response = bgg.search(query, page)
-
-    return response
+    search_handlers = {
+        MediaTypes.MANGA.value: lambda: (
+            mangaupdates.search(query, page)
+            if source == Sources.MANGAUPDATES.value
+            else mal.search(media_type, query, page)
+        ),
+        MediaTypes.ANIME.value: lambda: mal.search(media_type, query, page),
+        MediaTypes.TV.value: lambda: tmdb.search(media_type, query, page),
+        MediaTypes.MOVIE.value: lambda: tmdb.search(media_type, query, page),
+        MediaTypes.SEASON.value: lambda: tmdb.search(MediaTypes.TV.value, query, page),
+        MediaTypes.EPISODE.value: lambda: tmdb.search(MediaTypes.TV.value, query, page),
+        MediaTypes.GAME.value: lambda: igdb.search(query, page),
+        MediaTypes.BOOK.value: lambda: (
+            openlibrary.search(query, page)
+            if source == Sources.OPENLIBRARY.value
+            else hardcover.search(query, page)
+        ),
+        MediaTypes.COMIC.value: lambda: comicvine.search(query, page),
+        MediaTypes.BOARDGAME.value: lambda: bgg.search(query, page),
+    }
+    return search_handlers[media_type]()

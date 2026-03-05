@@ -229,13 +229,18 @@ def status_color(status):
 
 
 @register.filter
+def status_background_color(status):
+    """Return the background color associated with the status."""
+    return config.get_status_background_color(status)
+
+
+@register.filter
 def natural_day(datetime, user):
     """Format date with natural language (Today, Tomorrow, etc.)."""
-    # Get today's date in the current timezone
     today = timezone.localdate()
 
-    # Extract just the date part for comparison
-    datetime_date = datetime.date()
+    local_dt = timezone.localtime(datetime)
+    datetime_date = local_dt.date()
 
     # Calculate the difference in days
     diff = datetime_date - today
@@ -428,3 +433,18 @@ def get_pagination_range(current_page, total_pages, window):
         result.append(total_pages)
 
     return result
+
+
+@register.filter
+def show_media_score(rating, user):
+    """
+    Return if we should show the rating of a media.
+
+    Args:
+        rating: the rating value of the media
+        user: the user to check preferences for
+
+    Returns:
+        True if we should show the media score
+    """
+    return rating is not None and (not user.hide_zero_rating or rating > 0)

@@ -70,11 +70,11 @@ class Item(CalendarTriggerMixin, models.Model):
     media_id = models.CharField(max_length=20)
     source = models.CharField(
         max_length=20,
-        choices=Sources.choices,
+        choices=Sources,
     )
     media_type = models.CharField(
         max_length=10,
-        choices=MediaTypes.choices,
+        choices=MediaTypes,
         default=MediaTypes.MOVIE.value,
     )
     title = models.TextField()
@@ -492,8 +492,10 @@ class MediaManager(models.Manager):
                 x.next_event is None,
                 x.next_event.datetime if x.next_event else None,
             ),
-            users.models.HomeSortChoices.RECENT: lambda x: -timezone.datetime.timestamp(
-                x.progressed_at if x.progressed_at is not None else x.created_at,
+            users.models.HomeSortChoices.RECENT: lambda x: (
+                -timezone.datetime.timestamp(
+                    x.progressed_at if x.progressed_at is not None else x.created_at,
+                )
             ),
             users.models.HomeSortChoices.COMPLETION: lambda x: (
                 x.max_progress is None,
@@ -804,7 +806,7 @@ class Media(models.Model):
     progressed_at = MonitorField(monitor="progress")
     status = models.CharField(
         max_length=20,
-        choices=Status.choices,
+        choices=Status,
         default=Status.COMPLETED.value,
     )
     start_date = models.DateTimeField(null=True, blank=True)
@@ -835,7 +837,7 @@ class Media(models.Model):
         """Update fields depending on the progress of the media."""
         if self.progress < 0:
             self.progress = 0
-        else:
+        elif self.status == Status.IN_PROGRESS.value:
             max_progress = providers.services.get_media_metadata(
                 self.item.media_type,
                 self.item.media_id,
