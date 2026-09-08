@@ -1,7 +1,7 @@
 $:
   vscode:
     - docker:
-        image: docker.cnb.cool/my-codespace/dev-image/python:latest
+        image: docker.cnb.cool/my-codespace/dev-image-build/python:latest
       services:
         - vscode
         - docker
