@@ -1,0 +1,19 @@
+# 本地开发/一键运行覆盖配置
+# docker compose 会自动合并 docker-compose.yml 和本文件:
+#   - 使用本地代码构建镜像(而非拉取 ghcr.io 发布镜像)
+#   - 将 .env 中的环境变量传入容器(TMDB_API、SECRET、URLS 等)
+#   - 容器内出站请求(TMDB 等 API)走宿主机 mihomo 代理 127.0.0.1:10808
+#     (宿主机代理由 /root/.cnb/proxy/start.sh 启动, 账号 us:us 走德国出口)
+#
+# 注意: 部署到生产时如果希望直接使用官方镜像, 删除本文件即可。
+services:
+  yamtrack:
+    build: .
+    env_file: .env
+    extra_hosts:
+      # 让容器内可以通过 host.docker.internal 访问宿主机
+      - "host.docker.internal:host-gateway"
+    environment:
+      - HTTP_PROXY=http://us:us@host.docker.internal:10808
+      - HTTPS_PROXY=http://us:us@host.docker.internal:10808
+      - NO_PROXY=localhost,127.0.0.1,redis,yamtrack,host.docker.internal
