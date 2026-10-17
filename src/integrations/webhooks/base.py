@@ -371,6 +371,7 @@ class BaseWebhookProcessor:
             "source_url": movie_metadata.get("source_url", ""),
             "media_type": movie_metadata.get("media_type", ""),
             "movie": {
+                "id": media_id,
                 "title": movie_metadata.get("title", ""),
                 "date": movie_metadata.get("details", {}).get("release_date", ""),
             }
@@ -512,6 +513,7 @@ class BaseWebhookProcessor:
             "source_url": tv_metadata.get("source_url", ""),
             "media_type": tv_metadata.get("media_type", ""),
             "show": {
+                "id": media_id,
                 "title": tv_metadata.get("title", ""),
                 "date": date,
             },
