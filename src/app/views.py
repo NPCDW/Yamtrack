@@ -328,6 +328,90 @@ def season_details(request, source, media_id, title, season_number):  # noqa: AR
     return render(request, "app/media_details.html", context)
 
 
+def get_tmdb_details_url(
+    media_type,
+    media_id,
+    season_number=None,
+    episode_number=None,
+):
+    """Return the details URL for a TMDB media item."""
+    metadata = services.get_media_metadata(
+        media_type,
+        media_id,
+        Sources.TMDB.value,
+    )
+    title = app_tags.slug(metadata["title"])
+
+    # movies and tv shows without a season go to the media details page
+    if season_number is None:
+        return reverse(
+            "media_details",
+            kwargs={
+                "source": Sources.TMDB.value,
+                "media_type": media_type,
+                "media_id": media_id,
+                "title": title,
+            },
+        )
+
+    url = reverse(
+        "season_details",
+        kwargs={
+            "source": Sources.TMDB.value,
+            "media_id": media_id,
+            "title": title,
+            "season_number": season_number,
+        },
+    )
+
+    if episode_number is not None:
+        url = f"{url}#episode-{episode_number}"
+
+    return url
+
+
+@require_GET
+def tmdb_movie_redirect(request, media_id):  # noqa: ARG001 request not used
+    """Redirect a TMDB movie link to the movie details page."""
+    return redirect(get_tmdb_details_url(MediaTypes.MOVIE.value, media_id))
+
+
+@require_GET
+def tmdb_tv_redirect(request, media_id):  # noqa: ARG001 request not used
+    """Redirect a TMDB TV show link to the TV show details page."""
+    return redirect(get_tmdb_details_url(MediaTypes.TV.value, media_id))
+
+
+@require_GET
+def tmdb_season_redirect(
+    request,  # noqa: ARG001 request not used
+    media_id,
+    season_number,
+):
+    """Redirect a TMDB season link to the season details page."""
+    return redirect(
+        get_tmdb_details_url(MediaTypes.TV.value, media_id, season_number),
+    )
+
+
+@require_GET
+def tmdb_episode_redirect(
+    request,  # noqa: ARG001 request not used
+    media_id,
+    season_number,
+    episode_number,
+):
+    """Redirect a TMDB episode link to the season, highlighting the episode."""
+    return redirect(
+        get_tmdb_details_url(
+            MediaTypes.TV.value,
+            media_id,
+            season_number,
+            episode_number,
+        ),
+    )
+
+
 @require_POST
 def update_media_score(request, media_type, instance_id):
     """Update the user's score for a media item."""

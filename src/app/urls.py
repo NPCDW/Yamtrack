@@ -21,6 +21,26 @@ urlpatterns = [
         name="season_details",
     ),
     path(
+        "tmdb/movie/<int:media_id>",
+        views.tmdb_movie_redirect,
+        name="tmdb_movie_redirect",
+    ),
+    path(
+        "tmdb/tv/<int:media_id>",
+        views.tmdb_tv_redirect,
+        name="tmdb_tv_redirect",
+    ),
+    path(
+        "tmdb/tv/<int:media_id>/season/<int:season_number>",
+        views.tmdb_season_redirect,
+        name="tmdb_season_redirect",
+    ),
+    path(
+        "tmdb/tv/<int:media_id>/season/<int:season_number>/episode/<int:episode_number>",
+        views.tmdb_episode_redirect,
+        name="tmdb_episode_redirect",
+    ),
+    path(
         "update-score/<media_type:media_type>/<int:instance_id>",
         views.update_media_score,
         name="update_media_score",

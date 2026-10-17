@@ -108,6 +108,9 @@ class MediaDetailsViewTests(TestCase):
         self.assertEqual(response.context["media"]["title"], "Season 1")
         self.assertEqual(len(response.context["media"]["episodes"]), 1)
 
+        # episodes are rendered with an id, so they can be linked directly
+        self.assertContains(response, 'id="episode-1"')
+
         mock_get_metadata.assert_called_once_with(
             "tv_with_seasons",
             "1668",

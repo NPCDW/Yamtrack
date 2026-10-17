@@ -25,6 +25,17 @@
   clip-path: inset(0 50% 0 0);
 }
 
+/* Episode item linked from a TMDB episode redirect (e.g. #episode-1) */
+/* scroll-margin-top must clear the sticky top bar (h-16 + border = 65px) */
+.episode-item {
+  scroll-margin-top: 5rem;
+}
+
+.episode-item:target {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
 
 .media-grid {
   @apply grid grid-cols-2 xs:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4;

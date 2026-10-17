@@ -550,7 +550,8 @@
           <h2 class="text-xl font-bold mb-4">Episodes</h2>
           <div class="space-y-6">
             {% for episode in media.episodes %}
-              <div class="bg-[#2a2f35] rounded-lg overflow-hidden shadow-lg">
+              <div id="episode-{{ episode.episode_number }}"
+                   class="episode-item bg-[#2a2f35] rounded-lg overflow-hidden shadow-lg">
                 <div class="flex flex-col md:flex-row">
                   <img src="{{ IMG_NONE }}"
                        alt="E{{ episode.episode_number }}"
